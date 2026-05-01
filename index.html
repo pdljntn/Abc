@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>TERMINAL_CORE_ERROR</title>
+    <style>
+        body {
+            background: #000;
+            color: #00ffcc;
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            overflow-x: hidden;
+            height: 350vh; /* Scroll lebih panjang untuk build-up */
+        }
+
+        /* Background TV Rusak */
+        #noise {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0.07; z-index: -1; pointer-events: none;
+        }
+
+        /* HUD Graphics */
+        .hud {
+            position: fixed;
+            padding: 20px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.5;
+            z-index: 10;
+        }
+
+        .main-hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            animation: flicker 0.1s infinite alternate;
+        }
+
+        h1 { font-size: 3.5rem; color: #ff0000; text-shadow: 0 0 15px #ff0000; }
+
+        /* Video Section */
+        #videoSection {
+            margin-top: 80vh;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 1s, transform 0.5s;
+        }
+
+        video {
+            width: 85%;
+            max-width: 900px;
+            border: 1px solid #ff0000;
+            box-shadow: 0 0 50px rgba(255, 0, 0, 0.2);
+        }
+
+        @keyframes flicker {
+            0% { opacity: 0.9; } 100% { opacity: 1; transform: scale(1.002); }
+        }
+
+        #glitchOverlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 0, 0, 0.1);
+            pointer-events: none;
+            display: none;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body onclick="unlockAudio()">
+
+    <canvas id="noise"></canvas>
+    <div id="glitchOverlay"></div>
+    <div class="hud">System_Status: Compromised<br>Logic: Corrupted</div>
+
+    <div class="main-hero">
+        <h1>YOU ARE WATCHING</h1>
+        <p style="color: #444;">TAP ANYWHERE TO SYNC AUDIO</p>
+    </div>
+
+    <div id="videoSection">
+        <p style="color: red; font-weight: bold; margin-bottom: 20px;">[ FILE: UNKNOWN_ORIGIN.MP4 ]</p>
+        <video id="scaryVideo" loop>
+            <source src="Uiuiui .mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <script>
+        const video = document.getElementById('scaryVideo');
+        const overlay = document.getElementById('glitchOverlay');
+        const videoSection = document.getElementById('videoSection');
+        let audioUnlocked = false;
+
+        // 1. FUNGSI UNLOCK AUDIO (PENTING)
+        // Pengguna harus klik sekali di mana saja agar suara diizinkan oleh browser
+        function unlockAudio() {
+            if (!audioUnlocked) {
+                video.play().then(() => {
+                    video.pause(); // Putar & pause sekejap untuk memicu izin browser
+                    audioUnlocked = true;
+                    document.querySelector('.main-hero p').innerText = "AUDIO SYNCHRONIZED";
+                    document.querySelector('.main-hero p').style.color = "#00ffcc";
+                });
+            }
+        }
+
+        // 2. Background Noise Effect
+        const canvas = document.getElementById('noise');
+        const ctx = canvas.getContext('2d');
+        function renderNoise() {
+            canvas.width = innerWidth; canvas.height = innerHeight;
+            const img = ctx.createImageData(canvas.width, canvas.height);
+            for (let i = 0; i < img.data.length; i += 4) {
+                const val = Math.random() * 255;
+                img.data[i] = img.data[i+1] = img.data[i+2] = val;
+                img.data[i+3] = 255;
+            }
+            ctx.putImageData(img, 0, 0);
+            requestAnimationFrame(renderNoise);
+        }
+        renderNoise();
+
+        // 3. Scroll Logic
+        window.onscroll = function() {
+            let scroll = window.scrollY;
+
+            // Efek Distorsi Visual
+            if (scroll > 100) {
+                overlay.style.display = 'block';
+                document.body.style.filter = `invert(${Math.min(scroll/2000, 0.2)}) contrast(${1 + scroll/1000})`;
+                document.body.style.transform = `translateX(${Math.random() * 2}px)`;
+            }
+
+            // Memulai Video dengan Suara saat scroll mencapai target
+            if (scroll > 400) {
+                videoSection.style.opacity = "1";
+                videoSection.style.transform = `scale(${Math.min(0.8 + scroll/2000, 1.2)})`;
+                
+                // Coba putar video
+                video.play().catch(e => {
+                    // Jika gagal (karena belum klik), paksa muted dulu agar tetap tampil
+                    video.muted = true;
+                    video.play();
+                });
+
+                // Jika sudah unlock, nyalakan suara
+                if (audioUnlocked) {
+                    video.muted = false;
+                }
+            }
+        };
+
+        // Mencegah Inspect Element dasar
+        document.onkeydown = (e) => { if(e.keyCode == 123) return false; };
+        document.addEventListener('contextmenu', e => e.preventDefault());
+    </script>
+</body>
+</html>
